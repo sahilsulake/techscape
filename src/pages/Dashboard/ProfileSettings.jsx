@@ -5,7 +5,7 @@ import { useUser } from "@clerk/clerk-react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Textarea } from "@/components/ui/Textarea";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/Label";
 import { Card } from "@/components/ui/Card";
 
