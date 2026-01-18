@@ -10,7 +10,7 @@ import { useUser } from "@clerk/clerk-react";
 
 import EventCard from "../../components/events/EventCard";
 import Loader from "../../components/common/Loader";
-import { Input } from "../../components/ui/input";
+import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/badge";
 

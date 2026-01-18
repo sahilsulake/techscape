@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { createTeam } from "../../firebase/teamsAPI";
-import { Input } from "../../components/ui/input";
+import { Input } from "../../components/ui/Input";
 import { Textarea } from "../../components/ui/textarea";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/card";
