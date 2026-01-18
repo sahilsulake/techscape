@@ -5,8 +5,8 @@ import { useUser } from "@clerk/clerk-react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
 import Loader from "../../components/common/Loader";
 
 export default function MyTeams() {

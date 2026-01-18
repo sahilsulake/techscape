@@ -8,7 +8,7 @@ import { getUserProfile } from "../../firebase/profilesAPI";
 
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/Button";
-import { Badge } from "../../components/ui/badge";
+import { Badge } from "../../components/ui/Badge";
 import Loader from "../../components/common/Loader";
 import { toast } from "sonner";
 

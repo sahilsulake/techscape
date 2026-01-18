@@ -8,9 +8,9 @@ import {
   getConnectionStatus,
 } from "../../firebase/connectionsAPI";
 
-import { Card } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
+import { Card } from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
+import { Badge } from "../../components/ui/Badge";
 import Loader from "../../components/common/Loader";
 
 const ROLES = [

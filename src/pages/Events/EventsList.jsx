@@ -10,9 +10,9 @@ import { useUser } from "@clerk/clerk-react";
 
 import EventCard from "../../components/events/EventCard";
 import Loader from "../../components/common/Loader";
-import { Input } from "../../components/ui/input";
-import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
+import { Input } from "../../components/ui/Input";
+import { Button } from "../../components/ui/Button";
+import { Badge } from "../../components/ui/Badge";
 
 import { Search, Filter } from "lucide-react";
 import { toast } from "sonner";
