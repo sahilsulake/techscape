@@ -5,10 +5,10 @@ import { useUser } from "@clerk/clerk-react";
 import { fetchTeams } from "../../firebase/teamsAPI";
 import { getPendingRequests } from "../../firebase/connectionsAPI";
 
-import { Card } from "../../components/ui/Card";
+import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/Button";
 import Loader from "../../components/common/Loader";
-import { Badge } from "../../components/ui/Badge";
+import { Badge } from "../../components/ui/badge";
 
 export default function TeamsList() {
   const navigate = useNavigate();

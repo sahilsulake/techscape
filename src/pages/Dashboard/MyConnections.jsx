@@ -9,7 +9,7 @@ import {
 } from "../../firebase/connectionsAPI";
 import { getUserProfile } from "../../firebase/profilesAPI";
 
-import { Card } from "../../components/ui/Card";
+import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/Button";
 import Loader from "../../components/common/Loader";
 import { toast } from "sonner";

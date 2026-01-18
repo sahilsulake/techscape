@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 
-import { Card } from "../../components/ui/Card";
+import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/Button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/Tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 
 import Loader from "../../components/common/Loader";
 import EventCard from "../../components/events/EventCard";

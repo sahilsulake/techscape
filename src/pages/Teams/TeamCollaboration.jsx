@@ -13,7 +13,7 @@ import {
 
 import { db } from "@/firebase/firebase";
 import Loader from "@/components/common/Loader";
-import { Card } from "@/components/ui/Card";
+import { Card } from "@/components/ui/card";
 
 export default function TeamCollaboration() {
   const { id: teamId } = useParams();

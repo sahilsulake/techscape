@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { createTeam } from "../../firebase/teamsAPI";
-import { Input } from "../../components/ui/Input";
+import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
 import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
+import { Card } from "../../components/ui/card";
 import { toast } from "sonner";
 
 const CreateTeam = () => {

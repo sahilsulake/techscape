@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 
-import { Card } from "../../components/ui/Card";
+import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/Button";
-import { Badge } from "../../components/ui/Badge";
+import { Badge } from "../../components/ui/badge";
 import Loader from "../../components/common/Loader";
 
 import { getUserProfile } from "../../firebase/profilesAPI";
