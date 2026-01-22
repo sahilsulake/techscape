@@ -10,7 +10,7 @@ import { fetchTeams } from "@/firebase/teamsAPI";
 
 import Loader from "@/components/common/Loader";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
