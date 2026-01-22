@@ -13,7 +13,7 @@ const Footer = () => {
               <div className="p-2 rounded-lg bg-gradient-primary">
                 <Code2 className="w-5 h-5 text-white" />
               </div>
-              <span className="text-lg font-bold gradient-text">TechScapel</span>
+              <span className="text-lg font-bold gradient-text">TechScape</span>
             </div>
             <p className="text-sm text-gray-600">
               Discover and join the best tech events, hackathons, and workshops.
@@ -94,7 +94,7 @@ const Footer = () => {
 
         {/* Bottom Line */}
         <div className="mt-12 pt-8 border-t border-gray-300 text-center text-sm text-gray-600">
-          <p>© 2024 TechScapel. All rights reserved.</p>
+          <p>© 2024 TechScape. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -22,10 +22,9 @@ export default function EventsList() {
 
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
-
-  const [loading, setLoading] = useState(true);
   const [watchlist, setWatchlist] = useState([]);
 
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState(null);
 
@@ -38,37 +37,60 @@ export default function EventsList() {
   ];
 
   // ---------------------------------------------------
-  // LOAD EVENTS + WATCHLIST
+  // LOAD EVENTS + WATCHLIST (SAFE)
   // ---------------------------------------------------
   useEffect(() => {
+    let mounted = true;
+
     async function load() {
-      setLoading(true);
+      try {
+        setLoading(true);
 
-      const allEvents = await fetchEvents();
-      setEvents(allEvents);
-      setFilteredEvents(allEvents);
+        // ✅ EVENTS (public read)
+        const allEvents = await fetchEvents();
+        if (!mounted) return;
 
-      if (user) {
-        const w = await getUserWatchlist(user.id);
-        setWatchlist(w.map((item) => item.id));
+        setEvents(allEvents);
+        setFilteredEvents(allEvents);
+
+        // ✅ WATCHLIST (only if logged in)
+        if (user) {
+          try {
+            const w = await getUserWatchlist(user.id);
+            if (mounted) setWatchlist(w.map((item) => item.id));
+          } catch (err) {
+            console.warn("Watchlist load skipped:", err.message);
+            // 👆 do NOT block page
+          }
+        }
+      } catch (err) {
+        console.error("EventsList load error:", err);
+        toast.error("Failed to load events");
+      } finally {
+        if (mounted) setLoading(false); // ✅ ALWAYS STOP LOADER
       }
-
-      setLoading(false);
     }
+
     load();
+
+    return () => {
+      mounted = false;
+    };
   }, [user]);
 
   // ---------------------------------------------------
-  // SEARCH & FILTER LOGIC
+  // SEARCH & FILTER
   // ---------------------------------------------------
   useEffect(() => {
     let filtered = [...events];
 
-    if (searchQuery.trim() !== "") {
+    if (searchQuery.trim()) {
       filtered = filtered.filter(
         (event) =>
-          event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          event.description.toLowerCase().includes(searchQuery.toLowerCase())
+          event.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          event.description
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase())
       );
     }
 
@@ -82,7 +104,7 @@ export default function EventsList() {
   }, [searchQuery, selectedType, events]);
 
   // ---------------------------------------------------
-  // WATCHLIST BUTTON HANDLER
+  // WATCHLIST HANDLER
   // ---------------------------------------------------
   const toggleWatchlist = async (event) => {
     if (!user) {
@@ -95,14 +117,15 @@ export default function EventsList() {
     try {
       if (isSaved) {
         await removeFromWatchlist(user.id, event.id);
-        toast.success("Removed from watchlist");
         setWatchlist((prev) => prev.filter((id) => id !== event.id));
+        toast.success("Removed from watchlist");
       } else {
         await addToWatchlist(user.id, event);
-        toast.success("Added to watchlist");
         setWatchlist((prev) => [...prev, event.id]);
+        toast.success("Added to watchlist");
       }
-    } catch (e) {
+    } catch (err) {
+      console.error(err);
       toast.error("Failed to update watchlist");
     }
   };
@@ -123,7 +146,7 @@ export default function EventsList() {
         </p>
       </div>
 
-      {/* ------------------- SEARCH BAR ------------------- */}
+      {/* SEARCH */}
       <div className="mb-8 space-y-4">
         <div className="flex gap-4">
           <div className="relative flex-1">
@@ -135,16 +158,15 @@ export default function EventsList() {
               className="pl-10"
             />
           </div>
-
           <Button variant="outline" size="icon">
             <Filter className="w-5 h-5" />
           </Button>
         </div>
 
-        {/* ------------------- FILTER BADGES ------------------- */}
+        {/* FILTERS */}
         <div className="flex flex-wrap gap-2">
           <Badge
-            variant={selectedType === null ? "default" : "outline"}
+            variant={!selectedType ? "default" : "outline"}
             className="cursor-pointer"
             onClick={() => setSelectedType(null)}
           >
@@ -164,7 +186,7 @@ export default function EventsList() {
         </div>
       </div>
 
-      {/* ------------------- EVENT CARDS ------------------- */}
+      {/* EVENTS */}
       {filteredEvents.length > 0 ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (
@@ -179,7 +201,7 @@ export default function EventsList() {
       ) : (
         <div className="text-center py-12">
           <p className="text-lg text-muted-foreground">
-            No events found. Try adjusting your search or filters.
+            No events found.
           </p>
         </div>
       )}

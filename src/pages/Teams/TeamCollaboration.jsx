@@ -1,102 +1,140 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 
 import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-  documentId,
-} from "firebase/firestore";
+  getPendingRequests,
+  updateConnectionStatus,
+} from "@/firebase/connectionsAPI";
+import { fetchTeams } from "@/firebase/teamsAPI";
 
-import { db } from "@/firebase/firebase";
 import Loader from "@/components/common/Loader";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
-export default function TeamCollaboration() {
-  const { id: teamId } = useParams();
+export default function MyConnections() {
+  const { user, isLoaded } = useUser();
+  const navigate = useNavigate();
 
-  const [team, setTeam] = useState(null);
-  const [members, setMembers] = useState([]);
+  /* ✅ ALL STATES DEFINED */
+  const [teams, setTeams] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadTeam() {
-      setLoading(true);
+    if (!isLoaded || !user) return; // 🔥 VERY IMPORTANT
 
+    async function loadData() {
       try {
-        // 1️⃣ Load team
-        const teamRef = doc(db, "teams", teamId);
-        const teamSnap = await getDoc(teamRef);
+        setLoading(true);
 
-        if (!teamSnap.exists()) {
-          setLoading(false);
-          return;
-        }
+        // 1️⃣ Load pending requests
+        const pending = await getPendingRequests(user.id);
+        setRequests(Array.isArray(pending) ? pending : []);
 
-        const teamData = teamSnap.data();
-        setTeam(teamData);
-
-        // 2️⃣ Get member UIDs
-const memberIds = (teamData.members || [])
-  .map((m) => (typeof m === "string" ? m : m.id))
-  .filter(Boolean);
-
-        if (memberIds.length === 0) {
-          setMembers([]);
-          setLoading(false);
-          return;
-        }
-
-        // 🚨 Firestore limit: max 10 IDs per `in`
-        const q = query(
-          collection(db, "profiles"),
-          where(documentId(), "in", memberIds.slice(0, 10))
-        );
-
-        const snap = await getDocs(q);
-
-        const profiles = snap.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
-
-        setMembers(profiles);
+        // 2️⃣ Load teams
+        const teamsData = await fetchTeams();
+        setTeams(Array.isArray(teamsData) ? teamsData : []);
       } catch (err) {
-        console.error("TeamCollaboration error:", err);
+        console.error("MyConnections error:", err);
+        toast.error("Failed to load connections");
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
 
-    if (teamId) loadTeam();
-  }, [teamId]);
+    loadData();
+  }, [user, isLoaded]);
 
-  if (loading) return <Loader />;
+  /* ---------------- ACTION HANDLER ---------------- */
+  const handleAction = async (requestId, status) => {
+    try {
+      await updateConnectionStatus(requestId, status);
+      toast.success(`Request ${status}`);
+      setRequests((prev) => prev.filter((r) => r.id !== requestId));
+    } catch (err) {
+      toast.error("Action failed");
+    }
+  };
 
-  if (!team) {
-    return <p className="text-center py-10">Team not found</p>;
-  }
+  /* ---------------- UI ---------------- */
+
+  if (!isLoaded || loading) return <Loader />;
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-5xl">
-      <h1 className="text-3xl font-bold mb-6">{team.name}</h1>
+    <div className="container mx-auto px-4 py-12 max-w-5xl space-y-10">
+      <h1 className="text-3xl font-bold">My Connections</h1>
 
-      <h2 className="text-xl font-semibold mb-4">Team Members</h2>
+      {/* -------- REQUESTS -------- */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          Pending Requests
+          {requests.length > 0 && (
+            <Badge variant="destructive">{requests.length}</Badge>
+          )}
+        </h2>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {members.map((m) => (
-          <Card key={m.id} className="p-6">
-            <h3 className="font-bold">{m.full_name}</h3>
-            <p className="text-sm text-muted-foreground capitalize">
-              {m.role}
-            </p>
-            <p className="text-sm mt-2">{m.bio}</p>
-          </Card>
-        ))}
-      </div>
+        {requests.length === 0 ? (
+          <p className="text-muted-foreground">No pending requests</p>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-4">
+            {requests.map((req) => (
+              <Card key={req.id} className="p-4 space-y-3">
+                <p className="text-sm">
+                  From user: <b>{req.from_user}</b>
+                </p>
+
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => handleAction(req.id, "accepted")}
+                  >
+                    Accept
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleAction(req.id, "rejected")}
+                  >
+                    Reject
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* -------- TEAMS -------- */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">My Teams</h2>
+
+        {teams.length === 0 ? (
+          <p className="text-muted-foreground">
+            You are not part of any team yet
+          </p>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {teams.map((team) => (
+              <Card key={team.id} className="p-4 space-y-3">
+                <h3 className="font-semibold">{team.name}</h3>
+                <p className="text-sm text-muted-foreground">
+                  Members: {team.members?.length || 0}
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate(`/teams/${team.id}`)}
+                >
+                  View Team
+                </Button>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

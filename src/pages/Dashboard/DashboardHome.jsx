@@ -4,7 +4,12 @@ import { useNavigate } from "react-router-dom";
 
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/Button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs";
 
 import Loader from "../../components/common/Loader";
 import EventCard from "../../components/events/EventCard";
@@ -14,6 +19,7 @@ import { Calendar, Bookmark, Users, Plus } from "lucide-react";
 import { getUserProfile } from "../../firebase/profilesAPI";
 import { fetchEventsByOrganizer } from "../../firebase/eventsAPI";
 import { getUserWatchlist } from "../../firebase/watchlistAPI";
+import { toast } from "sonner";
 
 export default function DashboardHome() {
   const navigate = useNavigate();
@@ -29,28 +35,38 @@ export default function DashboardHome() {
 
     async function load() {
       setLoading(true);
-      const uid = user.id;
 
-      const [p, eventsData, watchlistData] = await Promise.all([
-        getUserProfile(uid),
-        fetchEventsByOrganizer(uid),
-        getUserWatchlist(uid),
-      ]);
+      try {
+        const uid = user.id;
 
-      setProfile(p);
-      setMyEvents(eventsData);
-      setWatchlistedEvents(watchlistData);
-      setLoading(false);
+        const [p, eventsData, watchlistData] = await Promise.all([
+          getUserProfile(uid),
+          fetchEventsByOrganizer(uid),
+          getUserWatchlist(uid),
+        ]);
+
+        setProfile(p);
+        setMyEvents(Array.isArray(eventsData) ? eventsData : []);
+        setWatchlistedEvents(
+          Array.isArray(watchlistData) ? watchlistData : []
+        );
+      } catch (err) {
+        console.error("DashboardHome error:", err);
+        toast.error("Failed to load dashboard data");
+      } finally {
+        setLoading(false);
+      }
     }
 
     load();
   }, [user]);
 
+  /* ---------------- UI ---------------- */
+
   if (loading) return <Loader />;
 
   return (
     <div className="container mx-auto px-4 py-12">
-
       {/* HEADER */}
       <div className="mb-8">
         <div className="flex items-start justify-between mb-6">
@@ -63,13 +79,16 @@ export default function DashboardHome() {
             </p>
           </div>
 
-          {/* --- SHOW BUTTON BASED ON PROFILE STATUS --- */}
           {!profile ? (
             <Button onClick={() => navigate("/dashboard/profile")}>
               Create Profile
             </Button>
           ) : (
-            <Button onClick={() => navigate(`/public-profile/${profile.username}`)}>
+            <Button
+              onClick={() =>
+                navigate(`/public-profile/${profile.username}`)
+              }
+            >
               View Profile
             </Button>
           )}
@@ -84,7 +103,9 @@ export default function DashboardHome() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{myEvents.length}</p>
-                <p className="text-sm text-muted-foreground">Events Posted</p>
+                <p className="text-sm text-muted-foreground">
+                  Events Posted
+                </p>
               </div>
             </div>
           </Card>
@@ -95,8 +116,12 @@ export default function DashboardHome() {
                 <Bookmark className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{watchlistedEvents.length}</p>
-                <p className="text-sm text-muted-foreground">Watchlisted Events</p>
+                <p className="text-2xl font-bold">
+                  {watchlistedEvents.length}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Watchlisted Events
+                </p>
               </div>
             </div>
           </Card>
@@ -108,7 +133,9 @@ export default function DashboardHome() {
               </div>
               <div>
                 <p className="text-2xl font-bold">0</p>
-                <p className="text-sm text-muted-foreground">Teams Joined</p>
+                <p className="text-sm text-muted-foreground">
+                  Teams Joined
+                </p>
               </div>
             </div>
           </Card>
@@ -144,7 +171,9 @@ export default function DashboardHome() {
               <p className="text-lg text-muted-foreground mb-4">
                 You haven’t posted any events yet.
               </p>
-              <Button onClick={() => navigate("/dashboard/create-event")}>
+              <Button
+                onClick={() => navigate("/dashboard/create-event")}
+              >
                 Post Your First Event
               </Button>
             </Card>
@@ -153,12 +182,18 @@ export default function DashboardHome() {
 
         {/* Watchlist */}
         <TabsContent value="watchlist" className="space-y-4">
-          <h2 className="text-2xl font-bold mb-6">Watchlisted Events</h2>
+          <h2 className="text-2xl font-bold mb-6">
+            Watchlisted Events
+          </h2>
 
           {watchlistedEvents.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {watchlistedEvents.map((event) => (
-                <EventCard key={event.id} event={event} isWatchlisted />
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  isWatchlisted
+                />
               ))}
             </div>
           ) : (

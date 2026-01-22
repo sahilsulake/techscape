@@ -35,7 +35,15 @@ export default function MyTeams() {
     loadTeams();
   }, [user]);
 
-  if (loading) return <Loader />;
+  <div>
+  {loading && <Loader />}
+  {!loading && teams.length === 0 && (
+    <p className="text-center text-muted-foreground">
+      No teams available
+    </p>
+  )}
+</div>
+
 
   return (
     <div className="container mx-auto px-4 py-12 space-y-6">

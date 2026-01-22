@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 import {
   getPendingRequests,
-  updateConnectionStatus
+  updateConnectionStatus,
 } from "../../firebase/connectionsAPI";
 import { getUserProfile } from "../../firebase/profilesAPI";
 
@@ -22,11 +22,12 @@ export default function MyConnections() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) return;
     loadRequests();
   }, [user]);
 
   async function loadRequests() {
-    if (!user) return;
+    setLoading(true);
 
     try {
       const pending = await getPendingRequests(user.id);
@@ -42,22 +43,32 @@ export default function MyConnections() {
     } catch (err) {
       console.error(err);
       toast.error("Failed to load requests");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   async function handleAccept(reqId) {
-    await updateConnectionStatus(reqId, "accepted");
-    toast.success("Connection accepted");
-    loadRequests();
+    try {
+      await updateConnectionStatus(reqId, "accepted");
+      toast.success("Connection accepted");
+      loadRequests();
+    } catch {
+      toast.error("Failed to accept request");
+    }
   }
 
   async function handleReject(reqId) {
-    await updateConnectionStatus(reqId, "rejected");
-    toast.info("Request rejected");
-    loadRequests();
+    try {
+      await updateConnectionStatus(reqId, "rejected");
+      toast.info("Request rejected");
+      loadRequests();
+    } catch {
+      toast.error("Failed to reject request");
+    }
   }
+
+  /* ---------------- UI ---------------- */
 
   if (loading) return <Loader />;
 
@@ -72,10 +83,10 @@ export default function MyConnections() {
           {requests.map((req) => (
             <Card key={req.id} className="p-6 space-y-4">
               <h3 className="text-xl font-semibold">
-                {req.profile?.full_name}
+                {req.profile?.full_name || "Unknown User"}
               </h3>
               <p className="text-sm text-muted-foreground">
-                @{req.profile?.username}
+                @{req.profile?.username || "unknown"}
               </p>
 
               <div className="flex gap-2">
@@ -94,7 +105,10 @@ export default function MyConnections() {
         </div>
       )}
 
-      <Button variant="outline" onClick={() => navigate("/dashboard")}>
+      <Button
+        variant="outline"
+        onClick={() => navigate("/dashboard")}
+      >
         Back to Dashboard
       </Button>
     </div>

@@ -10,6 +10,8 @@ import { Button } from "../../components/ui/Button";
 import Loader from "../../components/common/Loader";
 import { Badge } from "../../components/ui/badge";
 
+import { toast } from "sonner";
+
 export default function TeamsList() {
   const navigate = useNavigate();
   const { user } = useUser();
@@ -19,24 +21,41 @@ export default function TeamsList() {
   const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
-    loadData();
-  }, [user]);
+    let mounted = true;
 
-  async function loadData() {
-    setLoading(true);
+    async function loadData() {
+      try {
+        setLoading(true);
 
-    const teamsData = await fetchTeams();
-    setTeams(teamsData);
+        const teamsData = await fetchTeams();
+        if (!mounted) return;
 
-    if (user) {
-      const pending = await getPendingRequests(user.id);
-      setPendingCount(pending.length);
+        setTeams(teamsData || []);
+
+        if (user) {
+          const pending = await getPendingRequests(user.id);
+          if (!mounted) return;
+          setPendingCount(pending.length);
+        }
+      } catch (err) {
+        console.error("TeamsList error:", err);
+        toast.error("Failed to load teams");
+      } finally {
+        if (mounted) setLoading(false); // ✅ ALWAYS stop loader
+      }
     }
 
-    setLoading(false);
-  }
+    loadData();
 
-  if (loading) return <Loader />;
+    return () => {
+      mounted = false;
+    };
+  }, [user]);
+
+  /* ---------------- LOADER ---------------- */
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="container mx-auto px-4 py-12 space-y-8">
@@ -83,16 +102,13 @@ export default function TeamsList() {
           <h3 className="text-xl font-semibold flex items-center gap-2">
             Connection Requests
             {pendingCount > 0 && (
-              <Badge variant="destructive">
-                {pendingCount}
-              </Badge>
+              <Badge variant="destructive">{pendingCount}</Badge>
             )}
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
             Manage incoming requests
           </p>
         </Card>
-
       </div>
 
       {/* Available Teams */}
